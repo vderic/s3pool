@@ -288,7 +288,7 @@ func main() {
 
 	// start lander
 	lander.Init(p.devices)
-	lander.InitCsvSpec(",", "\"", "")
+	lander.InitCsvSpec(",", "\"", "", "\"", false)
 
 	s3meta.Initialize(29)
 

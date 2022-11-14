@@ -45,7 +45,7 @@ func Pull(args []string) (string, error) {
 		if hit {
 			conf.CountPullHit++
 			// check the zmp filepath and return to path[i]
-			zmppath, err := lander.FindZMPFile(path[i])
+			zmppath, err := lander.FindZMPFile(bucket, path[i])
 			if err != nil {
 				path[i] = ""
 				patherr[i] = errors.New("s3 file cache hit but zmp file not exists")
@@ -57,12 +57,12 @@ func Pull(args []string) (string, error) {
 		} else {
 			if patherr[i] == nil {
 				// check zmp filepath exists. if exists, delete the zmpfile
-				zmppath, err := lander.FindZMPFile(path[i])
+				zmppath, err := lander.FindZMPFile(bucket, path[i])
 				if err == nil {
-					lander.RemoveXrgFile(path[i])
+					lander.RemoveXrgFile(bucket, path[i])
 				}
 				// convert path[i] to zmpfile and return to path[i]
-				zmppath, err = lander.Csv2Xrg(path[i], schemafn)
+				zmppath, err = lander.Csv2Xrg(bucket, path[i], schemafn)
 				if err != nil {
 					path[i] = ""
 					patherr[i] = err
