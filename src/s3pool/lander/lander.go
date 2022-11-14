@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"bytes"
+	"strings"
+	"path/filepath"
 )
 
 var g_devices []string
@@ -27,7 +29,7 @@ func InitCsvSpec(delimiter string, quote string, nullstr string, esc string, ign
 	g_csv_ignore_header = ignore_header
 }
 
-func Csv2Xrg(bucket string, path string, schemafn string) (string, error) {
+func Csv2Xrg(bucket string, key string, schemafn string) (string, error) {
 	args := []string{"-i", "csv", "-d", g_csv_delimiter, "-q", g_csv_quote, "-x", g_csv_esc, "-N", g_csv_nullstr, "-s", schemafn}
 	for _, dev := range g_devices {
 		args = append(args, "-D", dev)
@@ -37,7 +39,7 @@ func Csv2Xrg(bucket string, path string, schemafn string) (string, error) {
 		args = append(args, "-H")
 	}
 
-	csvp := mapToPath(bucket, path)
+	csvp := mapToRelativePath(bucket, key)
 
 	args = append(args, csvp)
 
@@ -52,7 +54,7 @@ func Csv2Xrg(bucket string, path string, schemafn string) (string, error) {
 		return "", fmt.Errorf("xrgdiv failed -- %s", errstr)
 	}
 
-	zmppath, err := FindZMPFile(bucket, path)
+	zmppath, err := FindZMPFile(bucket, key)
 	if err != nil {
 		return "", err
 	}
@@ -60,13 +62,7 @@ func Csv2Xrg(bucket string, path string, schemafn string) (string, error) {
 	return zmppath, nil
 }
 
-func RemoveXrgFile(bucket string, path string) (err error) {
-
-	zmppath, err := FindZMPFile(bucket, path)
-	if err != nil {
-		// not found
-		return
-	}
+func RemoveXrgFile(zmppath string) (err error) {
 
 	lstpath := zmppath[:len(zmppath)-4] + ".lst"
 
@@ -77,9 +73,21 @@ func RemoveXrgFile(bucket string, path string) (err error) {
 	return
 }
 
-func FindZMPFile(bucket string, path string) (zmppath string, err error) {
-	//localpath := mapToPath(bucket, path)
-	return "", nil
+// return absolute path of the zonemap file
+func FindZMPFile(bucket string, key string) (zmppath string, err error) {
+	path := mapToRelativePath(bucket, key)
+
+	idx := strings.LastIndex(path, ".csv")
+	zmp := path[:idx] + ".zmp"
+	for _, dev := range g_devices {
+		p := dev + "/" + zmp
+		if fileReadable(p) {
+			zmppath, err = filepath.Abs(p)
+			return
+		}
+	}
+
+	return "", fmt.Errorf("ZMP file not found")
 }
 
 
@@ -91,7 +99,7 @@ func fileReadable(path string) bool {
 	return err == nil
 }
 
-func mapToPath(bucket, key string) (path string) {
+func mapToRelativePath(bucket, key string) (path string) {
 	path = fmt.Sprintf("data/%s/%s", bucket, key)
 	return
 }
