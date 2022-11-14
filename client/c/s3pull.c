@@ -19,7 +19,7 @@
 
 void usage(const char* pname, const char* msg)
 {
-	fprintf(stderr, "Usage: %s [-h] -p port bucket key\n", pname);
+	fprintf(stderr, "Usage: %s [-h] -p port schemafn bucket key\n", pname);
 	fprintf(stderr, "Pull a s3 file and print path to stdout.\n\n");
 	fprintf(stderr, "    -p port : specify the port number of s3pool process\n");
 	fprintf(stderr, "    -h      : print this help message\n");
@@ -39,11 +39,11 @@ void fatal(const char* msg)
 }
 
 
-void doit(int port, char* bucket, char* key[], int nkey)
+void doit(int port, char *schemafn, char* bucket, char* key[], int nkey)
 {
 	char errmsg[200];
 
-	char* fname = s3pool_pull_ex(port, bucket,
+	char* fname = s3pool_pull_ex(port, schemafn, bucket,
 								 (const char**) key, nkey,
 								 errmsg, sizeof(errmsg));
 	if (!fname) {
@@ -76,6 +76,10 @@ int main(int argc, char* argv[])
 	if (! (0 < port && port <= 65535)) {
 		usage(argv[0], "Bad or missing port number");
 	}
+	if (optind >= argc) {
+		usage(argv[0], "Need schemafn, bucket and key");
+	}
+	char *schemafn = argv[optind++];
 
 	if (optind >= argc) {
 		usage(argv[0], "Need bucket and key");
@@ -86,7 +90,7 @@ int main(int argc, char* argv[])
 		usage(argv[0], "Need key(s)");
 	}
 
-	doit(port, bucket, &argv[optind], argc - optind);
+	doit(port, schemafn, bucket, &argv[optind], argc - optind);
 
 	return 0;
 }

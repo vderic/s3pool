@@ -223,14 +223,14 @@ static char* chat(int port, const char* request,
    On failure, return a NULL ptr.
 
  */
-char* s3pool_pull_ex(int port, const char* bucket,
+char* s3pool_pull_ex(int port, const char *schemafn, const char* bucket,
 					 const char* key[], int nkey,
 					 char* errmsg, int errmsgsz)
 {
 	char* request = 0;
 	char* reply = 0;
 	int fd = -1;
-	const char* argv[2+nkey];
+	const char* argv[3+nkey];
 
 	if (! (nkey > 0)) {
 		snprintf(errmsg, errmsgsz, "s3pool_pull_ex: nkey must be > 0");
@@ -238,11 +238,12 @@ char* s3pool_pull_ex(int port, const char* bucket,
 	}
 
 	argv[0] = "PULL";
-	argv[1] = bucket;
+	argv[1] = schemafn;
+	argv[2] = bucket;
 	for (int i = 0; i < nkey; i++)
-		argv[i+2] = key[i];
+		argv[i+3] = key[i];
 	
-	request = mkrequest(2+nkey, argv, errmsg, errmsgsz);
+	request = mkrequest(3+nkey, argv, errmsg, errmsgsz);
 	if (!request) {
 		goto bailout;
 	}
@@ -263,10 +264,10 @@ char* s3pool_pull_ex(int port, const char* bucket,
 	return 0;
 }
 
-char* s3pool_pull(int port, const char* bucket, const char* key,
+char* s3pool_pull(int port, const char *schemafn, const char* bucket, const char* key,
 				  char* errmsg, int errmsgsz)
 {
-	char* reply = s3pool_pull_ex(port, bucket, &key, 1, errmsg, errmsgsz);
+	char* reply = s3pool_pull_ex(port, schemafn, bucket, &key, 1, errmsg, errmsgsz);
 	if (reply) {
 		char* term = strchr(reply, '\n');
 		if (term) *term = 0;

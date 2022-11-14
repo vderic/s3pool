@@ -26,6 +26,7 @@ import (
 	"s3pool/pidfile"
 	"s3pool/s3meta"
 	"s3pool/tcp_server"
+	"s3pool/lander"
 	"strings"
 	"time"
 )
@@ -44,6 +45,12 @@ func dummy() {
 
 func checkawscli() bool {
 	cmd := exec.Command("aws", "--version")
+	err := cmd.Run()
+	return err == nil
+}
+
+func checkxrgdiv() bool {
+	cmd := exec.Command("xrgdiv", "--help")
 	err := cmd.Run()
 	return err == nil
 }
@@ -146,6 +153,8 @@ type progArgs struct {
 	daemonPrep      *bool
 	pidFile         *string
 	pullConcurrency *int
+	device         *string
+	devices        []string
 }
 
 func parseArgs() (p progArgs, err error) {
@@ -155,6 +164,7 @@ func parseArgs() (p progArgs, err error) {
 	p.daemonPrep = flag.Bool("daemonprep", false, "internal, do not use")
 	p.pidFile = flag.String("pidfile", "", "store pid in this path")
 	p.pullConcurrency = flag.Int("c", 20, "maximum concurrent pull from s3")
+	p.device = flag.String("d", "", "device directores (separated by comma)")
 
 	flag.Parse()
 
@@ -172,6 +182,12 @@ func parseArgs() (p progArgs, err error) {
 		return
 	}
 
+	if "" == *p.device {
+		err = errors.New("Missing or invalid device directory path.")
+		return
+	}
+
+	p.devices = strings.Split(*p.device, ",")
 	return
 }
 
@@ -199,6 +215,11 @@ func main() {
 	// make sure that the aws cli is installed
 	if !checkawscli() {
 		exit("Cannot launch 'aws' command. Please install aws cli.")
+	}
+
+	// make sure that xrgdiv is installed
+	if ! checkxrgdiv() {
+		exit("Cannot launch 'xrgdiv' command. Please install xrgdiv or set PATH to include xrgdiv.")
 	}
 
 	// check flags
@@ -264,6 +285,10 @@ func main() {
 
 	// start Bucket monitor
 	conf.BucketmonChannel = mon.Bucketmon()
+
+	// start lander
+	lander.Init(p.devices)
+	lander.InitCsvSpec(",", "\"", "")
 
 	s3meta.Initialize(29)
 

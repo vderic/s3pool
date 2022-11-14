@@ -17,6 +17,7 @@ import (
 	"s3pool/conf"
 	"s3pool/jobqueue"
 	"s3pool/s3"
+	"s3pool/lander"
 	"strings"
 	"sync"
 )
@@ -28,7 +29,7 @@ func Pull(args []string) (string, error) {
 	if len(args) < 2 {
 		return "", errors.New("Expected at least 2 arguments for PULL")
 	}
-	bucket, keys := args[0], args[1:]
+	schemafn, bucket, keys := args[0], args[1], args[2:]
 	if err := checkCatalog(bucket); err != nil {
 		return "", err
 	}
@@ -43,6 +44,33 @@ func Pull(args []string) (string, error) {
 		path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
 		if hit {
 			conf.CountPullHit++
+			// check the zmp filepath and return to path[i]
+			zmppath, err := lander.FindZMPFile(path[i])
+			if err != nil {
+				path[i] = ""
+				patherr[i] = errors.New("s3 file cache hit but zmp file not exists")
+			} else {
+				path[i] = zmppath;
+			}
+
+
+		} else {
+			if patherr[i] == nil {
+				// check zmp filepath exists. if exists, delete the zmpfile
+				zmppath, err := lander.FindZMPFile(path[i])
+				if err == nil {
+					lander.RemoveXrgFile(path[i])
+				}
+				// convert path[i] to zmpfile and return to path[i]
+				zmppath, err = lander.Csv2Xrg(path[i], schemafn)
+				if err != nil {
+					path[i] = ""
+					patherr[i] = err
+				} else {
+					path[i] = zmppath
+				}
+			}
+
 		}
 		waitGroup.Done()
 	}
