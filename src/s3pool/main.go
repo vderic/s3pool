@@ -21,12 +21,12 @@ import (
 	"os"
 	"os/exec"
 	"s3pool/conf"
+	"s3pool/lander"
 	"s3pool/mon"
 	"s3pool/op"
 	"s3pool/pidfile"
 	"s3pool/s3meta"
 	"s3pool/tcp_server"
-	"s3pool/lander"
 	"strings"
 	"time"
 )
@@ -153,8 +153,8 @@ type progArgs struct {
 	daemonPrep      *bool
 	pidFile         *string
 	pullConcurrency *int
-	device         *string
-	devices        []string
+	device          *string
+	devices         []string
 }
 
 func parseArgs() (p progArgs, err error) {
@@ -218,7 +218,7 @@ func main() {
 	}
 
 	// make sure that xrgdiv is installed
-	if ! checkxrgdiv() {
+	if !checkxrgdiv() {
 		exit("Cannot launch 'xrgdiv' command. Please install xrgdiv or set PATH to include xrgdiv.")
 	}
 

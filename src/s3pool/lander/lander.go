@@ -1,13 +1,13 @@
 package lander
 
 import (
-//	"errors"
+	//	"errors"
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
-	"bytes"
-	"strings"
 	"path/filepath"
+	"strings"
 )
 
 var g_devices []string
@@ -49,7 +49,7 @@ func Csv2Xrg(bucket string, key string, schemafn string) (string, error) {
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 
-	if err := cmd.Run() ; err != nil {
+	if err := cmd.Run(); err != nil {
 		errstr := string(errbuf.Bytes())
 		return "", fmt.Errorf("xrgdiv failed -- %s", errstr)
 	}
@@ -96,7 +96,6 @@ func FindZMPFile(bucket string, key string) (zmppath string, err error) {
 
 	return "", fmt.Errorf("ZMP file not found")
 }
-
 
 func fileReadable(path string) bool {
 	f, err := os.Open(path)

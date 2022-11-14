@@ -16,8 +16,8 @@ import (
 	"errors"
 	"s3pool/conf"
 	"s3pool/jobqueue"
-	"s3pool/s3"
 	"s3pool/lander"
+	"s3pool/s3"
 	"strings"
 	"sync"
 )
@@ -50,9 +50,8 @@ func Pull(args []string) (string, error) {
 				path[i] = ""
 				patherr[i] = errors.New("s3 file cache hit but zmp file not exists")
 			} else {
-				path[i] = zmppath;
+				path[i] = zmppath
 			}
-
 
 		} else {
 			if patherr[i] == nil {
