@@ -76,9 +76,16 @@ func RemoveXrgFile(zmppath string) (err error) {
 // return absolute path of the zonemap file
 func FindZMPFile(bucket string, key string) (zmppath string, err error) {
 	path := mapToRelativePath(bucket, key)
-
 	idx := strings.LastIndex(path, ".csv")
+	if idx == -1 {
+		idx = strings.LastIndex(path, ".parquet")
+	}
+	if idx == -1 {
+		return "", fmt.Errorf("key is not .csv or .parquet file")
+	}
+
 	zmp := path[:idx] + ".zmp"
+
 	for _, dev := range g_devices {
 		p := dev + "/" + zmp
 		if fileReadable(p) {
