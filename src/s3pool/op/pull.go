@@ -26,8 +26,8 @@ var pullQueue = jobqueue.New(conf.PullConcurrency)
 
 func Pull(args []string) (string, error) {
 	conf.CountPull++
-	if len(args) < 2 {
-		return "", errors.New("Expected at least 2 arguments for PULL")
+	if len(args) < 3 {
+		return "", errors.New("Expected at least 3 arguments for PULL")
 	}
 	schemafn, bucket, keys := args[0], args[1], args[2:]
 	if err := checkCatalog(bucket); err != nil {
