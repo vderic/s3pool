@@ -68,7 +68,7 @@ func RemoveXrgFile(zmppath string) (err error) {
 
 	lstpath := zmppath[:len(zmppath)-4] + ".list"
 
-	if !fileReadable(lstpath) {
+	if fileReadable(lstpath) {
 		// .list file is a JSON list of file name
 		var flist []string
 		jsonfile, err := os.Open(lstpath)
@@ -89,6 +89,21 @@ func RemoveXrgFile(zmppath string) (err error) {
 
 		// remove .list file
 		err = os.Remove(lstpath)
+		if err != nil {
+			return err
+		}
+	}
+
+	schemafn := zmppath[:len(zmppath)-4] + ".schema"
+	if fileReadable(schemafn) {
+		err := os.Remove(schemafn)
+		if err != nil {
+			return err
+		}
+	}
+
+	if fileReadable(zmppath) {
+		err := os.Remove(zmppath)
 		if err != nil {
 			return err
 		}
