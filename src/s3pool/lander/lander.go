@@ -32,16 +32,22 @@ func InitCsvSpec(delimiter string, quote string, nullstr string, esc string, ign
 }
 
 func Csv2Xrg(bucket string, key string, schemafn string) (string, error) {
+	csvp := mapToCsvRelativePath(bucket, key)
+	xrgp := mapToXrgRelativePath(bucket, key)
+	xrgdir := filepath.Dir(xrgp)
 	args := []string{"-i", "csv", "-d", g_csv_delimiter, "-q", g_csv_quote, "-x", g_csv_esc, "-N", g_csv_nullstr, "-s", schemafn}
 	for _, dev := range g_devices {
-		args = append(args, "-D", dev)
+		dir := filepath.Join(dev, xrgdir)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return "", err
+		}
+		args = append(args, "-D", dir)
 	}
 
 	if g_csv_ignore_header {
 		args = append(args, "-H")
 	}
 
-	csvp := mapToRelativePath(bucket, key)
 
 	args = append(args, csvp)
 
@@ -113,30 +119,23 @@ func RemoveXrgFile(zmppath string) (err error) {
 
 // return absolute path of the zonemap file
 func FindZMPFile(bucket string, key string) (zmppath string, err error) {
-	path := mapToRelativePath(bucket, key)
-	idx := strings.LastIndex(path, ".csv")
+	path := mapToXrgRelativePath(bucket, key)
+	dir := filepath.Dir(path)
+	base := filepath.Base(path)
+
+	idx := strings.LastIndex(base, ".csv")
 	if idx == -1 {
-		idx = strings.LastIndex(path, ".parquet")
+		idx = strings.LastIndex(base, ".parquet")
 	}
 	if idx == -1 {
 		return "", fmt.Errorf("key is not .csv or .parquet file")
 	}
 
-	var stem = ""
-	var dir = ""
-	slashidx := strings.LastIndex(path, "/")
-	if slashidx == -1 {
-		// simple filename without directory
-		stem = path[:idx]
-		dir = ""
-	} else {
-		stem = path[slashidx+1 : idx]
-		dir = path[:slashidx]
-	}
+	stem := base[:idx]
 
 	for _, dev := range g_devices {
 		fname := stem + ".zmp"
-		p := filepath.Join(dev, dir, stem, fname)
+		p := filepath.Join(dev, dir, fname)
 		if fileReadable(p) {
 			zmppath, err = filepath.Abs(p)
 			return
@@ -154,7 +153,13 @@ func fileReadable(path string) bool {
 	return err == nil
 }
 
-func mapToRelativePath(bucket, key string) (path string) {
+func mapToCsvRelativePath(bucket, key string) (path string) {
 	path = fmt.Sprintf("data/%s/%s", bucket, key)
 	return
 }
+
+func mapToXrgRelativePath(bucket, key string) (path string) {
+	path = filepath.Join(bucket, key)
+	return
+}
+
