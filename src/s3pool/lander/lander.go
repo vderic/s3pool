@@ -3,13 +3,13 @@ package lander
 import (
 	//	"errors"
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"encoding/json"
-	"io/ioutil"
 )
 
 var g_devices []string
@@ -80,7 +80,7 @@ func RemoveXrgFile(zmppath string) (err error) {
 
 		json.Unmarshal(bytes, &flist)
 
-		for i := 0 ; i < len(flist) ; i++ {
+		for i := 0; i < len(flist); i++ {
 			err := os.Remove(flist[i])
 			if err != nil {
 				return err
@@ -130,8 +130,8 @@ func FindZMPFile(bucket string, key string) (zmppath string, err error) {
 		stem = path[:idx]
 		dir = ""
 	} else {
-		stem = path[slashidx+1:idx]
-		dir  = path[:slashidx]
+		stem = path[slashidx+1 : idx]
+		dir = path[:slashidx]
 	}
 
 	for _, dev := range g_devices {
