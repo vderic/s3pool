@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"encoding/json"
+	"io/ioutil"
 )
 
 var g_devices []string
@@ -68,9 +70,30 @@ func RemoveXrgFile(zmppath string) (err error) {
 
 	if !fileReadable(lstpath) {
 		// .list file is a JSON list of file name
+		var flist []string
+		jsonfile, err := os.Open(lstpath)
+		if err != nil {
+			return err
+		}
+		defer jsonfile.Close()
+		bytes, _ := ioutil.ReadAll(jsonfile)
 
+		json.Unmarshal(bytes, &flist)
+
+		for i := 0 ; i < len(flist) ; i++ {
+			err := os.Remove(flist[i])
+			if err != nil {
+				return err
+			}
+		}
+
+		// remove .list file
+		err = os.Remove(lstpath)
+		if err != nil {
+			return err
+		}
 	}
-	return
+	return nil
 }
 
 // return absolute path of the zonemap file
