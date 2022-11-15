@@ -146,6 +146,23 @@ func serve(c *tcp_server.Client, request string) {
 	}
 }
 
+type arrayFlags []string
+func (i *arrayFlags) String() string {
+	var ret string
+	for j, arg := range *i {
+		if j > 0 {
+			ret += " "
+		}
+		ret += arg
+	}
+    return ret
+}
+
+func (i *arrayFlags) Set(value string) error {
+    *i = append(*i, value)
+    return nil
+}
+
 type progArgs struct {
 	port              *int
 	dir               *string
@@ -153,14 +170,14 @@ type progArgs struct {
 	daemonPrep        *bool
 	pidFile           *string
 	pullConcurrency   *int
-	device            *string
-	devices           []string
+	devices           arrayFlags
 	csv_delimiter     *string
 	csv_quote         *string
 	csv_escape        *string
 	csv_nullstr       *string
 	csv_ignore_header *bool
 }
+
 
 func parseArgs() (p progArgs, err error) {
 	p.port = flag.Int("p", 0, "port number")
@@ -169,7 +186,7 @@ func parseArgs() (p progArgs, err error) {
 	p.daemonPrep = flag.Bool("daemonprep", false, "internal, do not use")
 	p.pidFile = flag.String("pidfile", "", "store pid in this path")
 	p.pullConcurrency = flag.Int("c", 20, "maximum concurrent pull from s3")
-	p.device = flag.String("d", "", "device directores (separated by comma)")
+	flag.Var(&p.devices, "d", "device directory")
 	p.csv_delimiter = flag.String("s", ",", "csv separator")
 	p.csv_quote = flag.String("q", "\"", "csv quote")
 	p.csv_escape = flag.String("x", "\"", "csv escape charactor")
@@ -192,12 +209,11 @@ func parseArgs() (p progArgs, err error) {
 		return
 	}
 
-	if "" == *p.device {
+	if len(p.devices) == 0 {
 		err = errors.New("Missing or invalid device directory path.")
 		return
 	}
 
-	p.devices = strings.Split(*p.device, ",")
 	return
 }
 
