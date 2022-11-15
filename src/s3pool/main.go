@@ -147,14 +147,19 @@ func serve(c *tcp_server.Client, request string) {
 }
 
 type progArgs struct {
-	port            *int
-	dir             *string
-	noDaemon        *bool
-	daemonPrep      *bool
-	pidFile         *string
-	pullConcurrency *int
-	device          *string
-	devices         []string
+	port              *int
+	dir               *string
+	noDaemon          *bool
+	daemonPrep        *bool
+	pidFile           *string
+	pullConcurrency   *int
+	device            *string
+	devices           []string
+	csv_delimiter     *string
+	csv_quote         *string
+	csv_escape        *string
+	csv_nullstr       *string
+	csv_ignore_header *bool
 }
 
 func parseArgs() (p progArgs, err error) {
@@ -165,6 +170,11 @@ func parseArgs() (p progArgs, err error) {
 	p.pidFile = flag.String("pidfile", "", "store pid in this path")
 	p.pullConcurrency = flag.Int("c", 20, "maximum concurrent pull from s3")
 	p.device = flag.String("d", "", "device directores (separated by comma)")
+	p.csv_delimiter = flag.String("s", ",", "csv separator")
+	p.csv_quote = flag.String("q", "\"", "csv quote")
+	p.csv_escape = flag.String("x", "\"", "csv escape charactor")
+	p.csv_nullstr = flag.String("N", "", "csv NULL string")
+	p.csv_ignore_header = flag.Bool("H", false, "csv ignore header")
 
 	flag.Parse()
 
@@ -288,7 +298,7 @@ func main() {
 
 	// start lander
 	lander.Init(p.devices)
-	lander.InitCsvSpec(",", "\"", "", "\"", false)
+	lander.InitCsvSpec(*p.csv_delimiter, *p.csv_quote, *p.csv_nullstr, *p.csv_escape, *p.csv_ignore_header)
 
 	s3meta.Initialize(29)
 
