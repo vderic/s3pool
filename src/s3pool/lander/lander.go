@@ -64,10 +64,10 @@ func Csv2Xrg(bucket string, key string, schemafn string) (string, error) {
 
 func RemoveXrgFile(zmppath string) (err error) {
 
-	lstpath := zmppath[:len(zmppath)-4] + ".lst"
+	lstpath := zmppath[:len(zmppath)-4] + ".list"
 
 	if !fileReadable(lstpath) {
-		// read all xrg files and delete it
+		// .list file is a JSON list of file name
 
 	}
 	return
@@ -84,10 +84,21 @@ func FindZMPFile(bucket string, key string) (zmppath string, err error) {
 		return "", fmt.Errorf("key is not .csv or .parquet file")
 	}
 
-	zmp := path[:idx] + ".zmp"
+	var stem = ""
+	var dir = ""
+	slashidx := strings.LastIndex(path, "/")
+	if slashidx == -1 {
+		// simple filename without directory
+		stem = path[:idx]
+		dir = ""
+	} else {
+		stem = path[slashidx+1:idx]
+		dir  = path[:slashidx]
+	}
 
 	for _, dev := range g_devices {
-		p := dev + "/" + zmp
+		fname := stem + ".zmp"
+		p := filepath.Join(dev, dir, stem, fname)
 		if fileReadable(p) {
 			zmppath, err = filepath.Abs(p)
 			return
