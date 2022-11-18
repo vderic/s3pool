@@ -24,12 +24,18 @@ import (
 
 var pullQueue = jobqueue.New(conf.PullConcurrency)
 
+/*
+ *  arg0: filespec is string array in JSON ["type", "delimiter", "quote", "escape", "nullstr", "ignore_header_bool"] in single line
+ *  arg1: schema filename
+ *  arg2: bucket name
+ *  arg3.. keys
+ */
 func Pull(args []string) (string, error) {
 	conf.CountPull++
-	if len(args) < 3 {
-		return "", errors.New("Expected at least 3 arguments for PULL")
+	if len(args) < 4 {
+		return "", errors.New("Expected at least 4 arguments for PULL")
 	}
-	schemafn, bucket, keys := args[0], args[1], args[2:]
+	filespec, schemafn, bucket, keys := args[0], args[1], args[2], args[3:]
 	if err := checkCatalog(bucket); err != nil {
 		return "", err
 	}
@@ -61,7 +67,7 @@ func Pull(args []string) (string, error) {
 					lander.RemoveXrgFile(zmppath)
 				}
 				// convert path[i] to zmpfile and return to path[i]
-				zmppath, err = lander.Csv2Xrg(bucket, keys[i], schemafn)
+				zmppath, err = lander.Xrgdiv(bucket, keys[i], schemafn, filespec)
 				if err != nil {
 					path[i] = ""
 					patherr[i] = err

@@ -9,33 +9,56 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
+type filespec struct {
+	ftype         string
+	delimiter     string
+	quote         string
+	escape        string
+	nullstr       string
+	ignore_header bool
+}
+
 var g_devices []string
-var g_csv_delimiter = ","
-var g_csv_quote = "\""
-var g_csv_nullstr = ""
-var g_csv_esc = "\""
-var g_csv_ignore_header = false
 
 func Init(devices []string) {
 	g_devices = devices
 }
 
-func InitCsvSpec(delimiter string, quote string, nullstr string, esc string, ignore_header bool) {
-	g_csv_delimiter = delimiter
-	g_csv_quote = quote
-	g_csv_nullstr = nullstr
-	g_csv_esc = esc
-	g_csv_ignore_header = ignore_header
-}
-
-func Csv2Xrg(bucket string, key string, schemafn string) (string, error) {
+func Xrgdiv(bucket string, key string, schemafn string, filespecjs string) (string, error) {
+	var fsa []string
+	var fspec filespec
+	var args []string
 	csvp := mapToCsvRelativePath(bucket, key)
 	xrgp := mapToXrgRelativePath(bucket, key)
 	xrgdir := filepath.Dir(xrgp)
-	args := []string{"-i", "csv", "-d", g_csv_delimiter, "-q", g_csv_quote, "-x", g_csv_esc, "-N", g_csv_nullstr, "-s", schemafn}
+	json.Unmarshal([]byte(filespecjs), &fsa)
+
+	if fsa[0] == "csv" {
+		if len(fsa) != 6 {
+			return "", fmt.Errorf("csv spec not enough parameters")
+		}
+
+		ignore_header, err := strconv.ParseBool(fsa[5])
+		if err != nil {
+			return "", fmt.Errorf("filespec is invalid. ignore_header is not bool")
+		}
+
+		fspec = filespec{fsa[0], fsa[1], fsa[2], fsa[3], fsa[4], ignore_header}
+		args = []string{"-i", "csv", "-d", fspec.delimiter, "-q", fspec.quote, "-x", fspec.escape, "-N", fspec.nullstr, "-s", schemafn}
+		if fspec.ignore_header {
+			args = append(args, "-H")
+		}
+	} else if fsa[0] == "parquet" {
+		fspec = filespec{ftype: fsa[0]}
+		args = []string{"-i", "parquet"}
+	} else {
+		return "", fmt.Errorf("file type %s not supported", fsa[0])
+	}
+
 	for _, dev := range g_devices {
 		dir := filepath.Join(dev, xrgdir)
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -43,11 +66,6 @@ func Csv2Xrg(bucket string, key string, schemafn string) (string, error) {
 		}
 		args = append(args, "-D", dir)
 	}
-
-	if g_csv_ignore_header {
-		args = append(args, "-H")
-	}
-
 
 	args = append(args, csvp)
 
@@ -162,4 +180,3 @@ func mapToXrgRelativePath(bucket, key string) (path string) {
 	path = filepath.Join(bucket, key)
 	return
 }
-
