@@ -29,7 +29,7 @@
    On failure, return a NULL ptr.
 
  */
-EXTERN char* s3pool_pull(int port, const char *schemafn, const char* bucket, const char* key,
+EXTERN char* s3pool_pull(int port, const char *filespec, const char *schemafn, const char* bucket, const char* key,
 						 char* errmsg, int errmsgsz);
 
 
@@ -44,7 +44,7 @@ EXTERN char* s3pool_pull(int port, const char *schemafn, const char* bucket, con
    On failure, return a NULL ptr.
 
  */
-EXTERN char* s3pool_pull_ex(int port, const char *schemafn, const char* bucket,
+EXTERN char* s3pool_pull_ex(int port, const char *filespec, const char *schemafn, const char* bucket,
 							const char* key[], int nkey,
 							char* errmsg, int errmsgsz);
 

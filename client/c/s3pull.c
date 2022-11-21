@@ -38,12 +38,33 @@ void fatal(const char* msg)
 	exit(1);
 }
 
+char *readfile(const char *fname) {
+        char * buffer = 0;
+        size_t length;
+        FILE * f = fopen (fname, "rb");
 
-void doit(int port, char *schemafn, char* bucket, char* key[], int nkey)
+        if (f) {
+                fseek (f, 0, SEEK_END);
+                length = ftell (f);
+                fseek (f, 0, SEEK_SET);
+                buffer = malloc (length);
+                if (buffer) {
+                        if (fread(buffer, 1, length, f) != (size_t) length) {
+				fclose(f);
+				free(buffer);
+				return 0;
+			}
+                }
+                fclose (f);
+        }
+        return buffer;
+}
+
+void doit(int port, char *filespec, char *schemafn, char* bucket, char* key[], int nkey)
 {
 	char errmsg[200];
 
-	char* fname = s3pool_pull_ex(port, schemafn, bucket,
+	char* fname = s3pool_pull_ex(port, filespec, schemafn, bucket,
 								 (const char**) key, nkey,
 								 errmsg, sizeof(errmsg));
 	if (!fname) {
@@ -76,6 +97,12 @@ int main(int argc, char* argv[])
 	if (! (0 < port && port <= 65535)) {
 		usage(argv[0], "Bad or missing port number");
 	}
+
+	if (optind >= argc) {
+		usage(argv[0], "Need filespecfn, schemafn, bucket and key");
+	}
+	char *filespecfn = argv[optind++];
+
 	if (optind >= argc) {
 		usage(argv[0], "Need schemafn, bucket and key");
 	}
@@ -90,7 +117,14 @@ int main(int argc, char* argv[])
 		usage(argv[0], "Need key(s)");
 	}
 
-	doit(port, schemafn, bucket, &argv[optind], argc - optind);
+	char *filespec = readfile(filespecfn);
+	if (!filespec) {
+		fprintf(stderr, "filespec file not found");
+		exit(1);
+	}
 
+	doit(port, filespec, schemafn, bucket, &argv[optind], argc - optind);
+
+	if (filespec) free(filespec);
 	return 0;
 }

@@ -66,10 +66,10 @@ void catfile(const char* fname)
 }
 
 
-void doit(int port, char *schemafn, char* bucket, const char* key[], int nkey)
+void doit(int port, char *filespec, char *schemafn, char* bucket, const char* key[], int nkey)
 {
 	char errmsg[200];
-	char* reply = s3pool_pull_ex(port, schemafn, bucket, key, nkey,
+	char* reply = s3pool_pull_ex(port, filespec, schemafn, bucket, key, nkey,
 								 errmsg, sizeof(errmsg));
 	if (!reply) {
 		fatal(errmsg);
@@ -86,6 +86,28 @@ void doit(int port, char *schemafn, char* bucket, const char* key[], int nkey)
 	}
 
 	free(reply);
+}
+
+char *readfile(const char *fname) {
+	char * buffer = 0;
+	size_t length;
+	FILE * f = fopen (fname, "rb");
+
+	if (f) {
+		fseek (f, 0, SEEK_END);
+		length = ftell (f);
+		fseek (f, 0, SEEK_SET);
+		buffer = malloc (length);
+		if (buffer) {
+			if (fread(buffer, 1, length, f) != length) {
+				fclose(f);
+				free(buffer);
+				return 0;
+			}
+		}
+		fclose (f);
+	}
+	return buffer;
 }
 
 
@@ -114,6 +136,11 @@ int main(int argc, char* argv[])
 	}
 
 	if (optind >= argc) {
+		usage(argv[0], "Need filespec, schemafn, bucket and key");
+	}
+
+	char *filespecfn = argv[optind++];
+	if (optind >= argc) {
 		usage(argv[0], "Need schemafn, bucket and key");
 	}
 
@@ -127,9 +154,19 @@ int main(int argc, char* argv[])
 		usage(argv[0], "Need key");
 	}
 
+	char *filespec = readfile(filespecfn);
+	if (!filespec) {
+		fprintf(stderr, "filespec file %s not found", filespecfn);
+		return 1;
+	}
+
 	const char** key = (const char**) &argv[optind];
 	int nkey = argc - optind;
-	doit(port, schemafn, bucket, key, nkey);
+
+
+	doit(port, filespec, schemafn, bucket, key, nkey);
+
+	free(filespec);
 
 	return 0;
 }
