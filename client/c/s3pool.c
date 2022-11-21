@@ -36,10 +36,12 @@ static char* mkrequest(int argc, const char** argv, char* errmsg, int errmsgsz)
 		// for each arg X, we want to make 'X', - quote quote comma space
 		// so, reserve extra space for those chars here
 		len += strlen(argv[i]) + 4; 
+		/*
 		if (strchr(argv[i], '\"')) {
 			snprintf(errmsg, errmsgsz, "DQUOTE char not allowed");
 			goto bailout;
 		}
+		*/
 		if (strchr(argv[i], '\n')) {
 			snprintf(errmsg, errmsgsz, "NEWLINE char not allowed");
 			goto bailout;
@@ -61,7 +63,7 @@ static char* mkrequest(int argc, const char** argv, char* errmsg, int errmsgsz)
 	*p++ = '\n';
 	*p = 0;						/* NUL */
 
-	assert((int)strlen(p) + 1 <= len);
+	//assert((int)strlen(p) + 1 <= len);
 	return request;
 
 	bailout:

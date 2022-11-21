@@ -122,6 +122,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "filespec file not found");
 		exit(1);
 	}
+	filespec[strcspn(filespec, "\r\n")] = 0;
 
 	doit(port, filespec, schemafn, bucket, &argv[optind], argc - optind);
 

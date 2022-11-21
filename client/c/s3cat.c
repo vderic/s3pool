@@ -163,6 +163,7 @@ int main(int argc, char* argv[])
 	const char** key = (const char**) &argv[optind];
 	int nkey = argc - optind;
 
+	filespec[strcspn(filespec, "\r\n")] = 0;
 
 	doit(port, filespec, schemafn, bucket, key, nkey);
 
