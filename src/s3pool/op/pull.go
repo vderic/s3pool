@@ -25,7 +25,7 @@ import (
 var pullQueue = jobqueue.New(conf.PullConcurrency)
 
 /*
- *  arg0: filespec is string array in JSON ["type", "delimiter", "quote", "escape", "nullstr", "ignore_header_bool"] in single line
+ *  arg0: filespec is in JSON {"fmt" :"csv", "csvspec" : {"delim" : ",", ... } in single line
  *  arg1: schema filename
  *  arg2: bucket name
  *  arg3.. keys

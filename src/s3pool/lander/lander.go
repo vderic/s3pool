@@ -9,17 +9,20 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
-type filespec struct {
-	ftype         string
-	delimiter     string
-	quote         string
-	escape        string
-	nullstr       string
-	ignore_header bool
+type Csvspec struct {
+	Delim     string
+	Quote         string
+	Escape        string
+	Nullstr       string
+	Header_line   bool
+}
+type Filespec struct {
+	Fmt           string
+	Csvspec Csvspec
+
 }
 
 var g_devices []string
@@ -29,34 +32,23 @@ func Init(devices []string) {
 }
 
 func Xrgdiv(bucket string, key string, schemafn string, filespecjs string) (string, error) {
-	var fsa []string
-	var fspec filespec
+	var fspec Filespec
 	var args []string
 	csvp := mapToCsvRelativePath(bucket, key)
 	xrgp := mapToXrgRelativePath(bucket, key)
 	xrgdir := filepath.Dir(xrgp)
-	json.Unmarshal([]byte(filespecjs), &fsa)
+	json.Unmarshal([]byte(filespecjs), &fspec)
 
-	if fsa[0] == "csv" {
-		if len(fsa) != 6 {
-			return "", fmt.Errorf("csv spec not enough parameters")
-		}
+	if fspec.Fmt == "csv" {
 
-		ignore_header, err := strconv.ParseBool(fsa[5])
-		if err != nil {
-			return "", fmt.Errorf("filespec is invalid. ignore_header is not bool")
-		}
-
-		fspec = filespec{fsa[0], fsa[1], fsa[2], fsa[3], fsa[4], ignore_header}
-		args = []string{"-i", "csv", "-d", fspec.delimiter, "-q", fspec.quote, "-x", fspec.escape, "-N", fspec.nullstr, "-s", schemafn}
-		if fspec.ignore_header {
+		args = []string{"-i", "csv", "-d", fspec.Csvspec.Delim, "-q", fspec.Csvspec.Quote, "-x", fspec.Csvspec.Escape, "-N", fspec.Csvspec.Nullstr, "-s", schemafn}
+		if fspec.Csvspec.Header_line {
 			args = append(args, "-H")
 		}
-	} else if fsa[0] == "parquet" {
-		fspec = filespec{ftype: fsa[0]}
+	} else if fspec.Fmt == "parquet" {
 		args = []string{"-i", "parquet"}
 	} else {
-		return "", fmt.Errorf("file type %s not supported", fsa[0])
+		return "", fmt.Errorf("file type %s not supported", fspec.Fmt)
 	}
 
 	for _, dev := range g_devices {
