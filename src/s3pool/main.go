@@ -55,6 +55,12 @@ func checkxrgdiv() bool {
 	return err == nil
 }
 
+func checkgohdfs() bool {
+	cmd := exec.Command("gohdfs", "--help")
+	err := cmd.Run()
+	return err == nil
+}
+
 func checkdirs() {
 	// create the log, tmp and data directories
 	mkdirall := func(dir string) {
@@ -171,6 +177,7 @@ type progArgs struct {
 	pidFile           *string
 	pullConcurrency   *int
 	devices           arrayFlags
+	hdfs              *bool
 }
 
 
@@ -182,6 +189,7 @@ func parseArgs() (p progArgs, err error) {
 	p.pidFile = flag.String("pidfile", "", "store pid in this path")
 	p.pullConcurrency = flag.Int("c", 20, "maximum concurrent pull from s3")
 	flag.Var(&p.devices, "d", "device directory")
+	p.hdfs = flag.Bool("hdfs", false, "run in hdfs mode")
 
 	flag.Parse()
 
@@ -236,6 +244,11 @@ func main() {
 	// make sure that xrgdiv is installed
 	if !checkxrgdiv() {
 		exit("Cannot launch 'xrgdiv' command. Please install xrgdiv or set PATH to include xrgdiv.")
+	}
+
+	// make sure that gohdfs is installed
+	if !checkgohdfs() {
+		exit("Cannot launch 'gohdfs' command. Please install gohdfs or set PATH to include gohdfs.")
 	}
 
 	// check flags
@@ -302,10 +315,13 @@ func main() {
 	// start Bucket monitor
 	conf.BucketmonChannel = mon.Bucketmon()
 
+	// init op
+	op.Init(*p.hdfs)
+
 	// start lander
 	lander.Init(p.devices)
 
-	s3meta.Initialize(29)
+	s3meta.Initialize(29, *p.hdfs)
 
 	// start server
 	server, err := tcp_server.New(fmt.Sprintf("0.0.0.0:%d", *p.port), serve)

@@ -22,6 +22,7 @@ type serverCB struct {
 
 var server []*serverCB
 var nserver uint32
+var hdfs bool
 
 func newServer() *serverCB {
 	s := &serverCB{make(chan *requestType)}
@@ -29,7 +30,9 @@ func newServer() *serverCB {
 	return s
 }
 
-func Initialize(n int) {
+func Initialize(n int, _hdfs bool) {
+	hdfs = _hdfs
+
 	if n <= 0 {
 		n = 29
 	}

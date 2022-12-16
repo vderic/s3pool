@@ -50,7 +50,13 @@ func Glob(args []string) (string, error) {
 	filter := func(key string) bool {
 		return g.Match(key)
 	}
-	key := cat.Scan(bucket, globPrefix(pattern), filter)
+	var prefix string
+	if g_hdfs {
+		prefix = pattern
+	} else {
+		prefix = globPrefix(pattern)
+	}
+	key := cat.Scan(bucket, prefix, filter)
 
 	var replyBuilder strings.Builder
 	for i := range key {
