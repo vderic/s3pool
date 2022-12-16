@@ -47,7 +47,11 @@ func Pull(args []string) (string, error) {
 	var hit bool
 
 	dowork := func(i int) {
-		path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
+		if g_hdfs {
+			//path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
+		} else {
+			path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
+		}
 		if hit {
 			conf.CountPullHit++
 			// check the zmp filepath and return to path[i]

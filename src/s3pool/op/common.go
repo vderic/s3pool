@@ -21,6 +21,12 @@ import (
 	"time"
 )
 
+var g_hdfs bool = false
+
+func Init(hdfs bool) {
+	g_hdfs = hdfs
+}
+
 func statTimes(path string) (atime, mtime, ctime time.Time, err error) {
 	fi, err := os.Stat(path)
 	if err != nil {
