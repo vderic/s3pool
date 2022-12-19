@@ -18,6 +18,7 @@ import (
 	"s3pool/jobqueue"
 	"s3pool/lander"
 	"s3pool/s3"
+	"s3pool/hdfs"
 	"strings"
 	"sync"
 )
@@ -48,7 +49,7 @@ func Pull(args []string) (string, error) {
 
 	dowork := func(i int) {
 		if g_hdfs {
-			//path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
+			path[i], hit, patherr[i] = hdfs.GetObject(bucket, keys[i], false)
 		} else {
 			path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
 		}
