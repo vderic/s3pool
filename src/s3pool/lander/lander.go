@@ -127,21 +127,30 @@ func RemoveXrgFile(zmppath string) (err error) {
 	return nil
 }
 
+func Stem(base string) string {
+
+	var stem string
+	isgzip := strings.HasSuffix(base, ".gz")
+	if isgzip {
+		stem = base[:len(base)-3]
+	} else {
+		stem = base
+	}
+	idx := strings.LastIndex(stem, ".")
+	if idx <= 0 {
+		return stem
+	} 
+
+	return stem[:idx]
+}
+
 // return absolute path of the zonemap file
 func FindZMPFile(bucket string, key string) (zmppath string, err error) {
 	path := mapToXrgRelativePath(bucket, key)
 	dir := filepath.Dir(path)
 	base := filepath.Base(path)
 
-	idx := strings.LastIndex(base, ".csv")
-	if idx == -1 {
-		idx = strings.LastIndex(base, ".parquet")
-	}
-	if idx == -1 {
-		return "", fmt.Errorf("key is not .csv or .parquet file")
-	}
-
-	stem := base[:idx]
+	stem := Stem(base)
 
 	for _, dev := range g_devices {
 		fname := stem + ".zmp"
