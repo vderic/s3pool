@@ -21,6 +21,7 @@ import (
 	"s3pool/hdfs"
 	"strings"
 	"sync"
+	"os"
 )
 
 var pullQueue = jobqueue.New(conf.PullConcurrency)
@@ -74,6 +75,10 @@ func Pull(args []string) (string, error) {
 				// convert path[i] to zmpfile and return to path[i]
 				zmppath, err = lander.Xrgdiv(bucket, keys[i], schemafn, filespec)
 				if err != nil {
+					// remove the source file if xrgdiv failed
+					metapath := path[i] + "__meta__"
+					os.Remove(path[i])
+					os.Remove(metapath)
 					path[i] = ""
 					patherr[i] = err
 				} else {
