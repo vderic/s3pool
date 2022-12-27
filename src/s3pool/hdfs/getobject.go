@@ -86,7 +86,7 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 	}
 	defer os.Remove(tmppath)
 
-	dfspath := "hdfs://" + bucket + "/" + key
+	dfspath := "/" + bucket + "/" + key
 
 	var outbuf, errbuf bytes.Buffer
 	// Run checksum command

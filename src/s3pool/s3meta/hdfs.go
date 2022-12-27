@@ -40,10 +40,10 @@ func hdfsListObjects(bucket string, prefix string, notify func(key, etag string)
 	// invoke gohdfs checksum
 	var cmd *exec.Cmd
 	if prefix == "" {
-		dfspath := "hdfs://" + bucket
+		dfspath := "/" + bucket
 		cmd = exec.Command("gohdfs", "checksum", dfspath)
 	} else {
-		dfspath := "hdfs://" + bucket + "/" + prefix
+		dfspath := "/" + bucket + "/" + prefix
 		cmd = exec.Command("gohdfs", "checksum", dfspath)
 	}
 	var errbuf bytes.Buffer
@@ -70,7 +70,7 @@ func hdfsListObjects(bucket string, prefix string, notify func(key, etag string)
 		// extract key value
 		etag = strings.Trim(nv[0], " \t")
 		key = strings.Trim(nv[1], " \t")
-		key = strings.TrimPrefix(key, "/")
+		key = strings.TrimPrefix(key, "/" + bucket + "/")
 
 		notify(key, etag)
 	}
