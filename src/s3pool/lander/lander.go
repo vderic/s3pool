@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"strconv"
 )
 
 type Csvspec struct {
@@ -26,9 +27,11 @@ type Filespec struct {
 }
 
 var g_devices []string
+var g_rows_per_group int
 
-func Init(devices []string) {
+func Init(devices []string, rows_per_group int) {
 	g_devices = devices
+	g_rows_per_group = rows_per_group
 }
 
 func Xrgdiv(bucket string, key string, schemafn string, filespecjs string) (string, error) {
@@ -49,6 +52,10 @@ func Xrgdiv(bucket string, key string, schemafn string, filespecjs string) (stri
 		args = []string{"-i", "parquet"}
 	} else {
 		return "", fmt.Errorf("file type %s not supported", fspec.Fmt)
+	}
+
+	if g_rows_per_group > 0 {
+		args = append(args, "-n", strconv.Itoa(g_rows_per_group))
 	}
 
 	for _, dev := range g_devices {

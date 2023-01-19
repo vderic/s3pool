@@ -178,6 +178,7 @@ type progArgs struct {
 	pullConcurrency   *int
 	devices           arrayFlags
 	hdfs              *bool
+	rows_per_group    *int
 }
 
 
@@ -190,7 +191,8 @@ func parseArgs() (p progArgs, err error) {
 	p.pullConcurrency = flag.Int("c", 20, "maximum concurrent pull from s3")
 	flag.Var(&p.devices, "d", "device directory")
 	p.hdfs = flag.Bool("hdfs", false, "run in hdfs mode")
-
+	p.rows_per_group =  flag.Int("N", 0, "number of rows per group")
+ 
 	flag.Parse()
 
 	if len(flag.Args()) != 0 {
@@ -319,7 +321,7 @@ func main() {
 	op.Init(*p.hdfs)
 
 	// start lander
-	lander.Init(p.devices)
+	lander.Init(p.devices, *p.rows_per_group)
 
 	s3meta.Initialize(29, *p.hdfs)
 
