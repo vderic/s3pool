@@ -108,7 +108,16 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 	}
 	newetag := nv[0]
 	if etag == newetag {
-		log.Println(" ... hdfs file not modified")
+		err = nil
+		if conf.Verbose(1) {
+			log.Println(" ... hdfs file not modified")
+		}
+		log.Println("   ... etag", etag)
+		log.Println("   ... catetag", catetag)
+		if etag != catetag && etag != "" {
+			log.Println(" ... update", key, etag)
+			cat.Upsert(bucket, key, etag)
+		}
 		retpath = path
 		hit = true
 		return
