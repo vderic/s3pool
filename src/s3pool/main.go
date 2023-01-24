@@ -309,7 +309,7 @@ func main() {
 	mon.Logmon()
 
 	// start the disk space monitor
-	mon.Diskmon()
+	//mon.Diskmon()
 
 	// start pidfile monitor
 	mon.Pidmon()

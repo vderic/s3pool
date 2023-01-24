@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"os/exec"
 	"s3pool/cat"
 	"s3pool/conf"
@@ -98,6 +99,21 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 		err = fmt.Errorf("gohdfs get failed -- %s", errstr)
 		return
 	}
+
+	dat := string(outbuf.Bytes())
+	nv := strings.SplitN(dat, " ", 2)
+	if len(nv) != 2 {
+		err = fmt.Errorf("gohdfs checksum output format error")
+		return
+	}
+	newetag := nv[0]
+	if etag == newetag {
+		log.Println(" ... hdfs file not modified")
+		retpath = path
+		hit = true
+		return
+	}
+
 
 	errbuf.Reset()
 
