@@ -19,6 +19,7 @@ import (
 	"s3pool/lander"
 	"s3pool/s3"
 	"s3pool/hdfs"
+	"s3pool/strlock"
 	"strings"
 	"sync"
 	"os"
@@ -49,6 +50,14 @@ func Pull(args []string) (string, error) {
 	var hit bool
 
 	dowork := func(i int) {
+
+		// lock to serialize pull on same (bucket:key)
+		lockname, err := strlock.Lock(bucket + ":" + keys[i])
+		if err != nil {
+			return
+		}
+		defer strlock.Unlock(lockname)
+
 		if g_hdfs {
 			path[i], hit, patherr[i] = hdfs.GetObject(bucket, keys[i], false)
 		} else {

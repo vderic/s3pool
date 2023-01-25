@@ -21,7 +21,6 @@ import (
 	"os/exec"
 	"s3pool/cat"
 	"s3pool/conf"
-	"s3pool/strlock"
 	"strings"
 )
 
@@ -34,13 +33,6 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 	if conf.Verbose(1) {
 		log.Println("s3 get-objects", bucket, key)
 	}
-
-	// lock to serialize pull on same (bucket,key)
-	lockname, err := strlock.Lock(bucket + ":" + key)
-	if err != nil {
-		return
-	}
-	defer strlock.Unlock(lockname)
 
 	// Get destination path
 	path, err := mapToPath(bucket, key)
