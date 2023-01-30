@@ -76,9 +76,9 @@ func (p *storeCB) setETag(key string, etag string) {
 }
 
 func (p *storeCB) getETag(key string) string {
-	p.RLock();
+	p.RLock()
 	x := p.etag[key]
-	p.RUnlock();
+	p.RUnlock()
 	return x
 }
 

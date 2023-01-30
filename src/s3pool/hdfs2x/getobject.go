@@ -24,11 +24,9 @@ import (
 	"s3pool/conf"
 )
 
-//
 // Invoke aws s3api to retrieve a file. Form:
 //
-//   aws s3api get-object --bucket BUCKET --key KEY --if-none-match ETAG tmppath
-//
+//	aws s3api get-object --bucket BUCKET --key KEY --if-none-match ETAG tmppath
 func GetObject(bucket string, key string, force bool) (retpath string, hit bool, err error) {
 	if conf.Verbose(1) {
 		log.Println("hdfs dfs -get", bucket, key)
@@ -77,6 +75,7 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 		err = fmt.Errorf("Cannot create temp file -- %v", err)
 		return
 	}
+	os.Remove(tmppath) // avoid File Exists error from hdfs
 	defer os.Remove(tmppath)
 
 	dfspath := "/" + bucket + "/" + key
@@ -99,10 +98,9 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 		return
 	}
 
-
 	// Run GET command
 	var outbuf, errbuf bytes.Buffer
-	cmd := exec.Command("hdfs", "dfs", "-get", "-f", dfspath, tmppath)
+	cmd := exec.Command("hdfs", "dfs", "-get", dfspath, tmppath)
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	if err = cmd.Run(); err != nil {

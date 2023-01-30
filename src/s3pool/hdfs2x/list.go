@@ -63,9 +63,9 @@ func ListObjects(bucket string, prefix string, notify func(key, etag string)) er
 		}
 
 		// extract key value
-                etag = strings.Trim(nv[0], " \t")
-                key = strings.Trim(nv[1], " \t")
-                key = strings.TrimPrefix(key, "/" + bucket + "/")
+		etag = strings.Trim(nv[0], " \t")
+		key = strings.Trim(nv[1], " \t")
+		key = strings.TrimPrefix(key, "/"+bucket+"/")
 
 		notify(key, etag)
 	}

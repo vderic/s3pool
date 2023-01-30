@@ -61,7 +61,7 @@ func hdfs2xListObjects(bucket string, prefix string, notify func(key, etag strin
 	for scanner.Scan() {
 		s := scanner.Text()
 		// Parse s of the form "etag key"
-                // Note: the order of Key and ETag is random, but one must follow another.
+		// Note: the order of Key and ETag is random, but one must follow another.
 		if strings.HasPrefix(s, "Found") {
 			continue
 		}
@@ -71,12 +71,11 @@ func hdfs2xListObjects(bucket string, prefix string, notify func(key, etag strin
 			continue
 		}
 
-
-                // extract key value
-                etag = "0"
+		// extract key value
+		etag = "0"
 		key = s[idx+1:]
-                key = strings.Trim(key, " \t")
-                key = strings.TrimPrefix(key, "/" + bucket + "/")
+		key = strings.Trim(key, " \t")
+		key = strings.TrimPrefix(key, "/"+bucket+"/")
 
 		notify(key, etag)
 	}
