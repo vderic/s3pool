@@ -102,7 +102,7 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 
 	// Run GET command
 	var outbuf, errbuf bytes.Buffer
-	cmd := exec.Command("hdfs", "dfs", "-get", dfspath, tmppath)
+	cmd := exec.Command("hdfs", "dfs", "-get", "-f", dfspath, tmppath)
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	if err = cmd.Run(); err != nil {
