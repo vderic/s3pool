@@ -62,7 +62,7 @@ func checkgohdfs() bool {
 }
 
 func checkhdfs() bool {
-	cmd := exec.Command("hdfs", "--help")
+	cmd := exec.Command("hadoop", "--help")
 	err := cmd.Run()
 	return err == nil
 }

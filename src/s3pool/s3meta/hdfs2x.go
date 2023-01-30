@@ -41,16 +41,16 @@ func hdfs2xListObjects(bucket string, prefix string, notify func(key, etag strin
 	var cmd *exec.Cmd
 	if prefix == "" {
 		dfspath := "/" + bucket
-		cmd = exec.Command("hdfs", "dfs", "-ls", dfspath)
+		cmd = exec.Command("hadoop", "fs", "-ls", dfspath)
 	} else {
 		dfspath := "/" + bucket + "/" + prefix
-		cmd = exec.Command("hdfs", "dfs", "-ls", dfspath)
+		cmd = exec.Command("hadoop", "fs", "-ls", dfspath)
 	}
 	var errbuf bytes.Buffer
 	cmd.Stderr = &errbuf
 	pipe, _ := cmd.StdoutPipe()
 	if err = cmd.Start(); err != nil {
-		return fmt.Errorf("hdfs dfs -ls failed -- %s", string(errbuf.Bytes()))
+		return fmt.Errorf("hadoop fs -ls failed -- %s", string(errbuf.Bytes()))
 	}
 	defer cmd.Wait()
 
@@ -80,12 +80,12 @@ func hdfs2xListObjects(bucket string, prefix string, notify func(key, etag strin
 		notify(key, etag)
 	}
 	if err = scanner.Err(); err != nil {
-		return fmt.Errorf("hdfs dfs -ls failed -- %v", err)
+		return fmt.Errorf("hadoop fs -ls failed -- %v", err)
 	}
 
 	// clean up
 	if err = cmd.Wait(); err != nil {
-		return fmt.Errorf("hdfs dfs -ls failed -- %v", err)
+		return fmt.Errorf("hadoop fs -ls failed -- %v", err)
 	}
 
 	return nil

@@ -29,7 +29,7 @@ import (
 //	aws s3api get-object --bucket BUCKET --key KEY --if-none-match ETAG tmppath
 func GetObject(bucket string, key string, force bool) (retpath string, hit bool, err error) {
 	if conf.Verbose(1) {
-		log.Println("hdfs dfs -get", bucket, key)
+		log.Println("hadoop fs -get", bucket, key)
 	}
 
 	// Get destination path
@@ -100,12 +100,12 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 
 	// Run GET command
 	var outbuf, errbuf bytes.Buffer
-	cmd := exec.Command("hdfs", "dfs", "-get", dfspath, tmppath)
+	cmd := exec.Command("hadoop", "fs", "-get", dfspath, tmppath)
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	if err = cmd.Run(); err != nil {
 		errstr := string(errbuf.Bytes())
-		err = fmt.Errorf("hdfs dfs -get failed -- %s", errstr)
+		err = fmt.Errorf("hadoop fs -get failed -- %s", errstr)
 		return
 	}
 
