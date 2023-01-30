@@ -4,6 +4,10 @@ import (
 	"hash/fnv"
 )
 
+var DFS_S3 int = 1
+var DFS_HDFS int = 2
+var DFS_HDFS2X int = 3
+
 type requestType struct {
 	command string
 	param   []string
@@ -22,7 +26,7 @@ type serverCB struct {
 
 var server []*serverCB
 var nserver uint32
-var hdfs bool
+var dfsmode int
 
 func newServer() *serverCB {
 	s := &serverCB{make(chan *requestType)}
@@ -30,8 +34,8 @@ func newServer() *serverCB {
 	return s
 }
 
-func Initialize(n int, _hdfs bool) {
-	hdfs = _hdfs
+func Initialize(n int, _dfsmode int) {
+	dfsmode = _dfsmode
 
 	if n <= 0 {
 		n = 29

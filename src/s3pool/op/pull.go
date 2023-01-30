@@ -19,6 +19,7 @@ import (
 	"s3pool/lander"
 	"s3pool/s3"
 	"s3pool/hdfs"
+	"s3pool/hdfs2x"
 	"s3pool/strlock"
 	"strings"
 	"sync"
@@ -58,9 +59,11 @@ func Pull(args []string) (string, error) {
 		}
 		defer strlock.Unlock(lockname)
 
-		if g_hdfs {
+		if g_dfsmode == DFS_HDFS {
 			path[i], hit, patherr[i] = hdfs.GetObject(bucket, keys[i], false)
-		} else {
+		} else if g_dfsmode == DFS_HDFS2X {
+			path[i], hit, patherr[i] = hdfs2x.GetObject(bucket, keys[i], false)
+		} else if g_dfsmode == DFS_S3 {
 			path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
 		}
 		if hit {

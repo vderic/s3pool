@@ -21,10 +21,14 @@ import (
 	"time"
 )
 
-var g_hdfs bool = false
+var DFS_S3 int = 1
+var DFS_HDFS int = 2
+var DFS_HDFS2X int = 3
 
-func Init(hdfs bool) {
-	g_hdfs = hdfs
+var g_dfsmode int = 0
+
+func Init(dfsmode int) {
+	g_dfsmode = dfsmode
 }
 
 func statTimes(path string) (atime, mtime, ctime time.Time, err error) {
