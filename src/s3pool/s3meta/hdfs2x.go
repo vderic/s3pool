@@ -41,10 +41,10 @@ func hdfs2xListObjects(bucket string, prefix string, notify func(key, etag strin
 	var cmd *exec.Cmd
 	if prefix == "" {
 		dfspath := "/" + bucket
-		cmd = exec.Command("hdfs", "dfs", "-ls", "-C", dfspath)
+		cmd = exec.Command("hdfs", "dfs", "-ls", dfspath)
 	} else {
 		dfspath := "/" + bucket + "/" + prefix
-		cmd = exec.Command("hdfs", "dfs", "-ls", "-C", dfspath)
+		cmd = exec.Command("hdfs", "dfs", "-ls", dfspath)
 	}
 	var errbuf bytes.Buffer
 	cmd.Stderr = &errbuf
@@ -60,9 +60,23 @@ func hdfs2xListObjects(bucket string, prefix string, notify func(key, etag strin
 	var etag string
 	for scanner.Scan() {
 		s := scanner.Text()
-		key = s
-		etag = "0"
-		key = strings.TrimPrefix(key, "/" + bucket + "/")
+		// Parse s of the form "etag key"
+                // Note: the order of Key and ETag is random, but one must follow another.
+		if strings.HasPrefix(s, "Found") {
+			continue
+		}
+
+		idx := strings.LastIndex(s, " ")
+		if idx == -1 {
+			continue
+		}
+
+
+                // extract key value
+                etag = "0"
+		key = s[idx+1:]
+                key = strings.Trim(key, " \t")
+                key = strings.TrimPrefix(key, "/" + bucket + "/")
 
 		notify(key, etag)
 	}
