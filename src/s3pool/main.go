@@ -280,7 +280,7 @@ func main() {
 
 	// make sure that hdfs is installed
 	if *p.hdfs2x && !checkhdfs() {
-		exit("Cannot launch 'gohdfs' command. Please install hdfs or set PATH to include gohdfs.")
+		exit("Cannot launch 'hdfs' command. Please install hdfs or set PATH to include gohdfs.")
 	}
 
 	// get into the home dir
