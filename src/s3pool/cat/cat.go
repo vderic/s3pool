@@ -91,7 +91,7 @@ func Scan(bucket string, prefix string, filter func(string) bool) (key []string)
 		} else {
 			key = make([]string, 0, len(xkey))
 			for i := 0; i < len(xkey); i++ {
-				if xetag[i] != "" {
+				if xetag[i] != "" && filter(xkey[i]) {
 					key = append(key, xkey[i])
 				}
 			}
