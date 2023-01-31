@@ -15,6 +15,9 @@ install: all
 	install client/c/s3pull ${prefix}/bin
 	install client/c/s3push ${prefix}/bin
 	install client/c/s3refresh ${prefix}/bin
+	install client/python/hdfscli ${prefix}/bin
+	install client/python/hdfsls ${prefix}/bin
+	cp -r client/python/hdfs ${prefix}/bin
 
 clean:
 	$(MAKE) -C src/s3pool clean
