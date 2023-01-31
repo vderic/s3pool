@@ -29,7 +29,7 @@ import (
 //	aws s3api get-object --bucket BUCKET --key KEY --if-none-match ETAG tmppath
 func GetObject(bucket string, key string, force bool) (retpath string, hit bool, err error) {
 	if conf.Verbose(1) {
-		log.Println("hadoop fs -get", bucket, key)
+		log.Println("hdfscli download", bucket, key)
 	}
 
 	// Get destination path
@@ -75,7 +75,6 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 		err = fmt.Errorf("Cannot create temp file -- %v", err)
 		return
 	}
-	os.Remove(tmppath) // avoid File Exists error from hdfs
 	defer os.Remove(tmppath)
 
 	dfspath := "/" + bucket + "/" + key
@@ -100,12 +99,12 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 
 	// Run GET command
 	var outbuf, errbuf bytes.Buffer
-	cmd := exec.Command("hadoop", "fs", "-get", dfspath, tmppath)
+	cmd := exec.Command("hdfscli", "download", "--force", dfspath, tmppath)
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	if err = cmd.Run(); err != nil {
 		errstr := string(errbuf.Bytes())
-		err = fmt.Errorf("hadoop fs -get failed -- %s", errstr)
+		err = fmt.Errorf("hdfscli download failed -- %s", errstr)
 		return
 	}
 
