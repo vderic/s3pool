@@ -5,25 +5,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
+	"reflect"
 	"strconv"
+	"strings"
 )
 
 type Csvspec struct {
-	Delim     string
-	Quote         string
-	Escape        string
-	Nullstr       string
-	Header_line   bool
+	Delim       string
+	Quote       string
+	Escape      string
+	Nullstr     string
+	Header_line bool
 }
 type Filespec struct {
-	Fmt           string
+	Fmt     string
 	Csvspec Csvspec
-
 }
 
 var g_devices []string
@@ -146,7 +147,7 @@ func Stem(base string) string {
 	idx := strings.LastIndex(stem, ".")
 	if idx <= 0 {
 		return stem
-	} 
+	}
 
 	return stem[:idx]
 }
@@ -187,4 +188,44 @@ func mapToCsvRelativePath(bucket, key string) (path string) {
 func mapToXrgRelativePath(bucket, key string) (path string) {
 	path = filepath.Join(bucket, key)
 	return
+}
+
+func CheckSchema(schemafn string, zmpfile string) (bool, error) {
+	dir := filepath.Dir(zmpfile)
+	base := filepath.Base(zmpfile)
+	fname := Stem(base) + ".schema"
+	p := filepath.Join(dir, fname)
+
+	// compare two schema file
+	s1, err := os.Open(schemafn)
+	if err != nil {
+		return false, fmt.Errorf("target schema file cannot be open")
+	}
+
+	s2, err := os.Open(p)
+	if err != nil {
+		return false, fmt.Errorf("source xrg schema file cannot be open")
+	}
+
+	equals, err := jsonEquals(s1, s2)
+	if err != nil {
+		return false, err
+	}
+
+	s1.Close()
+	s2.Close()
+	return equals, nil
+}
+
+func jsonEquals(a, b io.Reader) (bool, error) {
+	var j, j2 interface{}
+	d := json.NewDecoder(a)
+	if err := d.Decode(&j); err != nil {
+		return false, err
+	}
+	d = json.NewDecoder(b)
+	if err := d.Decode(&j2); err != nil {
+		return false, err
+	}
+	return reflect.DeepEqual(j2, j), nil
 }

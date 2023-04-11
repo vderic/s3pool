@@ -14,16 +14,16 @@ package op
 
 import (
 	"errors"
+	"os"
 	"s3pool/conf"
+	"s3pool/hdfs"
+	"s3pool/hdfs2x"
 	"s3pool/jobqueue"
 	"s3pool/lander"
 	"s3pool/s3"
-	"s3pool/hdfs"
-	"s3pool/hdfs2x"
 	"s3pool/strlock"
 	"strings"
 	"sync"
-	"os"
 )
 
 var pullQueue = jobqueue.New(conf.PullConcurrency)
@@ -73,6 +73,12 @@ func Pull(args []string) (string, error) {
 			if err != nil {
 				path[i] = ""
 				patherr[i] = errors.New("s3 file cache hit but zmp file not exists")
+			}
+
+			match, err := lander.CheckSchema(schemafn, zmppath)
+			if err != nil || match == false {
+				path[i] = ""
+				patherr[i] = errors.New("schema not match")
 			} else {
 				path[i] = zmppath
 			}

@@ -22,8 +22,8 @@ import (
 )
 
 /*
-  1. List all objects in bucket
-  2. save the key[] and etag[] to catalog
+1. List all objects in bucket
+2. save the key[] and etag[] to catalog
 */
 func Refresh(args []string) (string, error) {
 	conf.CountRefresh++
