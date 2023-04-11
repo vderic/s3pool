@@ -190,30 +190,24 @@ func mapToXrgRelativePath(bucket, key string) (path string) {
 	return
 }
 
-func CheckSchema(schemafn string, zmpfile string) (bool, error) {
+func CheckSchema(schema io.Reader, zmpfile string) (bool, error) {
 	dir := filepath.Dir(zmpfile)
 	base := filepath.Base(zmpfile)
 	fname := Stem(base) + ".schema"
 	p := filepath.Join(dir, fname)
 
 	// compare two schema file
-	s1, err := os.Open(schemafn)
-	if err != nil {
-		return false, fmt.Errorf("target schema file cannot be open")
-	}
-
-	s2, err := os.Open(p)
+	xrgschema, err := os.Open(p)
 	if err != nil {
 		return false, fmt.Errorf("source xrg schema file cannot be open")
 	}
 
-	equals, err := jsonEquals(s1, s2)
+	equals, err := jsonEquals(schema, xrgschema)
 	if err != nil {
 		return false, err
 	}
 
-	s1.Close()
-	s2.Close()
+	xrgschema.Close()
 	return equals, nil
 }
 

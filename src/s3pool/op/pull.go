@@ -13,6 +13,7 @@
 package op
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"s3pool/conf"
@@ -50,6 +51,11 @@ func Pull(args []string) (string, error) {
 	waitGroup := sync.WaitGroup{}
 	var hit bool
 
+	schemabytes, err := os.ReadFile(schemafn)
+	if err != nil {
+		return "", err
+	}
+
 	dowork := func(i int) {
 
 		// lock to serialize pull on same (bucket:key)
@@ -75,7 +81,7 @@ func Pull(args []string) (string, error) {
 				patherr[i] = errors.New("s3 file cache hit but zmp file not exists")
 			}
 
-			match, err := lander.CheckSchema(schemafn, zmppath)
+			match, err := lander.CheckSchema(bytes.NewReader(schemabytes), zmppath)
 			if err != nil || match == false {
 				path[i] = ""
 				patherr[i] = errors.New("schema not match")
