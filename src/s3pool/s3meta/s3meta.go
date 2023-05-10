@@ -7,6 +7,7 @@ import (
 var DFS_S3 int = 1
 var DFS_HDFS int = 2
 var DFS_HDFS2X int = 3
+var DFS_LOCAL int = 4
 
 type requestType struct {
 	command string

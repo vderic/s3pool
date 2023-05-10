@@ -63,7 +63,22 @@ func (p *serverCB) list(req *requestType) (reply *replyType) {
 			reply = &replyType{err: err}
 			return
 		}
-	}
+	} else if dfsmode == DFS_LOCAL {
+                err := localListObjects(bucket, prefix, func(k, t string) {
+                        if k[len(k)-1] == '/' {
+                                // skip DIR
+                                return
+                        }
+                        reply.key = append(reply.key, k)
+                        reply.etag = append(reply.etag, t)
+                })
+
+                if err != nil {
+                        reply = &replyType{err: err}
+                        return
+                }
+        }
+
 
 	store.insert(prefix, reply.key, reply.etag)
 	return
