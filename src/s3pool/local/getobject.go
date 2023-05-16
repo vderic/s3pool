@@ -32,8 +32,6 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 		log.Println("local cp", bucket, key)
 	}
 
-	log.Println("bucket=", bucket, " key=", key)
-
 	// Get destination path
 	path, err := mapToPath(bucket, key)
 	if err != nil {
