@@ -356,12 +356,12 @@ func main() {
 	}
 
 	// init op
-	op.Init(conf.DfsMode)
+	op.Init()
 
 	// start lander
 	lander.Init(p.devices, *p.rows_per_group)
 
-	s3meta.Initialize(29, conf.DfsMode)
+	s3meta.Initialize(29)
 
 	// start server
 	server, err := tcp_server.New(fmt.Sprintf("0.0.0.0:%d", *p.port), serve)
