@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"s3pool/conf"
 )
 
 type Csvspec struct {
@@ -181,7 +182,11 @@ func fileReadable(path string) bool {
 }
 
 func mapToCsvRelativePath(bucket, key string) (path string) {
-	path = fmt.Sprintf("data/%s/%s", bucket, key)
+	if conf.DfsMode == conf.DFS_LOCAL {
+		path = fmt.Sprintf("/%s/%s", bucket, key)
+	} else {
+		path = fmt.Sprintf("data/%s/%s", bucket, key)
+	} 
 	return
 }
 

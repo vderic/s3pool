@@ -341,28 +341,27 @@ func main() {
 	// start Bucket monitor
 	conf.BucketmonChannel = mon.Bucketmon()
 
-	// dfsmode
-	dfsmode := 0
+	// conf.DfsMode
 	if (*p.s3) {
-		dfsmode = 1
+		conf.DfsMode = conf.DFS_S3
 	}
 	if (*p.hdfs) {
-		dfsmode = 2
+		conf.DfsMode = conf.DFS_HDFS
 	}
 	if (*p.hdfs2x) {
-		dfsmode = 3
+		conf.DfsMode = conf.DFS_HDFS2X
 	}
 	if (*p.local) {
-		dfsmode = 4
+		conf.DfsMode = conf.DFS_LOCAL
 	}
 
 	// init op
-	op.Init(dfsmode)
+	op.Init(conf.DfsMode)
 
 	// start lander
 	lander.Init(p.devices, *p.rows_per_group)
 
-	s3meta.Initialize(29, dfsmode)
+	s3meta.Initialize(29, conf.DfsMode)
 
 	// start server
 	server, err := tcp_server.New(fmt.Sprintf("0.0.0.0:%d", *p.port), serve)
