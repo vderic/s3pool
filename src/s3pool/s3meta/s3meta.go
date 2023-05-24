@@ -7,6 +7,7 @@ import (
 var DFS_S3 int = 1
 var DFS_HDFS int = 2
 var DFS_HDFS2X int = 3
+var DFS_LOCAL int = 4
 
 type requestType struct {
 	command string
@@ -26,7 +27,6 @@ type serverCB struct {
 
 var server []*serverCB
 var nserver uint32
-var dfsmode int
 
 func newServer() *serverCB {
 	s := &serverCB{make(chan *requestType)}
@@ -34,8 +34,7 @@ func newServer() *serverCB {
 	return s
 }
 
-func Initialize(n int, _dfsmode int) {
-	dfsmode = _dfsmode
+func Initialize(n int) {
 
 	if n <= 0 {
 		n = 29

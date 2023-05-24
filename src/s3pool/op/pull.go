@@ -19,6 +19,7 @@ import (
 	"s3pool/conf"
 	"s3pool/hdfs"
 	"s3pool/hdfs2x"
+	"s3pool/local"
 	"s3pool/jobqueue"
 	"s3pool/lander"
 	"s3pool/s3"
@@ -65,13 +66,16 @@ func Pull(args []string) (string, error) {
 		}
 		defer strlock.Unlock(lockname)
 
-		if g_dfsmode == DFS_HDFS {
+		if conf.DfsMode == conf.DFS_HDFS {
 			path[i], hit, patherr[i] = hdfs.GetObject(bucket, keys[i], false)
-		} else if g_dfsmode == DFS_HDFS2X {
+		} else if conf.DfsMode == conf.DFS_HDFS2X {
 			path[i], hit, patherr[i] = hdfs2x.GetObject(bucket, keys[i], false)
-		} else if g_dfsmode == DFS_S3 {
+		} else if conf.DfsMode == conf.DFS_S3 {
 			path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
-		}
+		} else if conf.DfsMode == conf.DFS_LOCAL {
+                        path[i], hit, patherr[i] = local.GetObject(bucket, keys[i], false)
+                }
+
 		if hit {
 			conf.CountPullHit++
 			// check the zmp filepath and return to path[i]

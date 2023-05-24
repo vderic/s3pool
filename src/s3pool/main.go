@@ -187,6 +187,7 @@ type progArgs struct {
 	hdfs              *bool
 	hdfs2x            *bool
 	s3                *bool
+	local             *bool
 	rows_per_group    *int
 }
 
@@ -202,6 +203,7 @@ func parseArgs() (p progArgs, err error) {
 	p.s3 = flag.Bool("s3", false, "run in s3 mode")
 	p.hdfs = flag.Bool("hdfs", false, "run in hdfs mode")
 	p.hdfs2x = flag.Bool("hdfs2x", false, "run in hdfs 2.x mode")
+	p.local = flag.Bool("local", false, "run in local mode")
 	p.rows_per_group =  flag.Int("N", 0, "number of rows per group")
  
 	flag.Parse()
@@ -225,8 +227,8 @@ func parseArgs() (p progArgs, err error) {
 		return
 	}
 
-	if (! *p.s3 && ! *p.hdfs && ! *p.hdfs2x)  {
-		err = errors.New("Missing or invalid dfs. Either -s3, -hdfs or -hdfs2x.")
+	if (! *p.s3 && ! *p.hdfs && ! *p.hdfs2x && ! *p.local )  {
+		err = errors.New("Missing or invalid dfs. Either -s3, -hdfs, -hdfs2x or -local.")
 		return
 	}
 
@@ -331,7 +333,7 @@ func main() {
 	mon.Logmon()
 
 	// start the disk space monitor
-	//mon.Diskmon()
+	mon.Diskmon()
 
 	// start pidfile monitor
 	mon.Pidmon()
@@ -339,25 +341,27 @@ func main() {
 	// start Bucket monitor
 	conf.BucketmonChannel = mon.Bucketmon()
 
-	// dfsmode
-	dfsmode := 0
+	// conf.DfsMode
 	if (*p.s3) {
-		dfsmode = 1
+		conf.DfsMode = conf.DFS_S3
 	}
 	if (*p.hdfs) {
-		dfsmode = 2
+		conf.DfsMode = conf.DFS_HDFS
 	}
 	if (*p.hdfs2x) {
-		dfsmode = 3
+		conf.DfsMode = conf.DFS_HDFS2X
+	}
+	if (*p.local) {
+		conf.DfsMode = conf.DFS_LOCAL
 	}
 
 	// init op
-	op.Init(dfsmode)
+	op.Init()
 
 	// start lander
 	lander.Init(p.devices, *p.rows_per_group)
 
-	s3meta.Initialize(29, dfsmode)
+	s3meta.Initialize(29)
 
 	// start server
 	server, err := tcp_server.New(fmt.Sprintf("0.0.0.0:%d", *p.port), serve)
