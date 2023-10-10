@@ -85,7 +85,7 @@ func Pull(args []string) (string, error) {
 				patherr[i] = errors.New("s3 file cache hit but zmp file not exists")
 			}
 
-			match, err := lander.CheckSchema(bytes.NewReader(schemabytes), zmppath)
+			match, err := lander.CheckSchema(bytes.NewReader(schemabytes), zmppath, filespec)
 			if err != nil || match == false {
 				path[i] = ""
 				patherr[i] = errors.New("schema not match")

@@ -195,11 +195,18 @@ func mapToXrgRelativePath(bucket, key string) (path string) {
 	return
 }
 
-func CheckSchema(schema io.Reader, zmpfile string) (bool, error) {
+func CheckSchema(schema io.Reader, zmpfile string, filespecjs string) (bool, error) {
+	var fspec Filespec
 	dir := filepath.Dir(zmpfile)
 	base := filepath.Base(zmpfile)
 	fname := Stem(base) + ".schema"
 	p := filepath.Join(dir, fname)
+	json.Unmarshal([]byte(filespecjs), &fspec)
+
+	if (fspec.Fmt == "parquet") {
+		// TODO: loosely check the decimal and skip for now
+		return true, nil
+	}
 
 	// compare two schema file
 	xrgschema, err := os.Open(p)
