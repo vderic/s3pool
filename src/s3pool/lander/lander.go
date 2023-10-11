@@ -51,7 +51,7 @@ func Xrgdiv(bucket string, key string, schemafn string, filespecjs string) (stri
 			args = append(args, "-H")
 		}
 	} else if fspec.Fmt == "parquet" {
-		args = []string{"-i", "parquet", "-s", schemafn}
+		args = []string{"-l", "-i", "parquet", "-s", schemafn}
 	} else {
 		return "", fmt.Errorf("file type %s not supported", fspec.Fmt)
 	}
