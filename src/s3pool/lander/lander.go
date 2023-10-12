@@ -28,6 +28,13 @@ type Filespec struct {
 	Csvspec Csvspec
 }
 
+type ColumnDesc struct {
+    Name string
+    Type string
+    Precision int
+    Scale int
+}
+
 var g_devices []string
 var g_rows_per_group int
 
@@ -203,23 +210,24 @@ func CheckSchema(schema io.Reader, zmpfile string, filespecjs string) (bool, err
 	p := filepath.Join(dir, fname)
 	json.Unmarshal([]byte(filespecjs), &fspec)
 
-	if (fspec.Fmt == "parquet") {
-		// TODO: loosely check the decimal and skip for now
-		return true, nil
-	}
-
 	// compare two schema file
 	xrgschema, err := os.Open(p)
 	if err != nil {
 		return false, fmt.Errorf("source xrg schema file cannot be open")
 	}
+	defer xrgschema.Close()
 
-	equals, err := jsonEquals(schema, xrgschema)
+	equals := false
+	if (fspec.Fmt == "parquet") {
+		// TODO: loosely check the decimal and skip for now
+		equals, err = checkSchemaLoosely(schema, xrgschema)
+	} else {
+		equals, err = jsonEquals(schema, xrgschema)
+	}
 	if err != nil {
 		return false, err
 	}
 
-	xrgschema.Close()
 	return equals, nil
 }
 
@@ -235,3 +243,60 @@ func jsonEquals(a, b io.Reader) (bool, error) {
 	}
 	return reflect.DeepEqual(j2, j), nil
 }
+
+
+func parseSchema(r io.Reader) ([]ColumnDesc, error) {
+    s0 := []ColumnDesc{}
+
+    d0 := json.NewDecoder(r)
+    t0, err := d0.Token()
+    if err != nil || t0 != json.Delim('[') {
+        return nil, fmt.Errorf("not open bracket [")
+    }
+    for d0.More() {
+        var c ColumnDesc
+        err := d0.Decode(&c)
+        if err != nil {
+            return nil, fmt.Errorf("column decode failed")
+        }
+
+        s0 = append(s0, c)
+    }
+    t0, err = d0.Token()
+    if err != nil || t0 != json.Delim(']') {
+        return nil, fmt.Errorf("not open bracket ]")
+    }
+    return s0, nil
+}
+
+func checkSchemaLoosely(a, b io.Reader) (bool, error) {
+    s0, err := parseSchema(a)
+    if err != nil {
+        return false, fmt.Errorf("input schema not in JSON")
+    }
+
+    s1, err := parseSchema(b)
+    if err != nil {
+        return false, fmt.Errorf("xrg schema not in JSON")
+    }
+
+    if len(s0) != len(s1) {
+        return false, fmt.Errorf("schems size not match")
+    }
+
+    for i := 0 ; i < len(s0) ; i++ {
+        cd0 := s0[i]
+        cd1 := s1[i]
+
+        if (cd0.Name != cd1.Name) {
+            return false, fmt.Errorf("column name not match %s %s", cd0.Name, cd1.Name)
+        }
+        if (cd0.Type != cd1.Type) {
+            return false, fmt.Errorf("column name not match %s %s", cd0.Type, cd1.Type)
+        }
+    }
+
+    return true, nil
+}
+
+
