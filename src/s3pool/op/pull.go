@@ -88,7 +88,7 @@ func Pull(args []string) (string, error) {
 			match, err := lander.CheckSchema(bytes.NewReader(schemabytes), zmppath, filespec)
 			if err != nil || match == false {
 				path[i] = ""
-				patherr[i] = errors.New("schema not match")
+				patherr[i] = err
 			} else {
 				path[i] = zmppath
 			}
