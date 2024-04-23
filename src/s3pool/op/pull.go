@@ -16,12 +16,13 @@ import (
 	"bytes"
 	"errors"
 	"os"
+	"s3pool/cat"
 	"s3pool/conf"
 	"s3pool/hdfs"
 	"s3pool/hdfs2x"
-	"s3pool/local"
 	"s3pool/jobqueue"
 	"s3pool/lander"
+	"s3pool/local"
 	"s3pool/s3"
 	"s3pool/strlock"
 	"strings"
@@ -48,6 +49,7 @@ func Pull(args []string) (string, error) {
 
 	nkeys := len(keys)
 	path := make([]string, nkeys)
+	metapath := make([]string, nkeys)
 	patherr := make([]error, nkeys)
 	waitGroup := sync.WaitGroup{}
 	var hit bool
@@ -67,14 +69,14 @@ func Pull(args []string) (string, error) {
 		defer strlock.Unlock(lockname)
 
 		if conf.DfsMode == conf.DFS_HDFS {
-			path[i], hit, patherr[i] = hdfs.GetObject(bucket, keys[i], false)
+			path[i], metapath[i], hit, patherr[i] = hdfs.GetObject(bucket, keys[i], false)
 		} else if conf.DfsMode == conf.DFS_HDFS2X {
-			path[i], hit, patherr[i] = hdfs2x.GetObject(bucket, keys[i], false)
+			path[i], metapath[i], hit, patherr[i] = hdfs2x.GetObject(bucket, keys[i], false)
 		} else if conf.DfsMode == conf.DFS_S3 {
-			path[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
+			path[i], metapath[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
 		} else if conf.DfsMode == conf.DFS_LOCAL {
-                        path[i], hit, patherr[i] = local.GetObject(bucket, keys[i], false)
-                }
+			path[i], metapath[i], hit, patherr[i] = local.GetObject(bucket, keys[i], false)
+		}
 
 		if hit {
 			conf.CountPullHit++
@@ -104,9 +106,12 @@ func Pull(args []string) (string, error) {
 				zmppath, err = lander.Xrgdiv(bucket, keys[i], schemafn, filespec)
 				if err != nil {
 					// remove the source file if xrgdiv failed
-					metapath := path[i] + "__meta__"
-					os.Remove(path[i])
-					os.Remove(metapath)
+					// For local, metafile is in data directory and path[i] is the source path which is not in data directory
+					if conf.DfsMode != conf.DFS_LOCAL {
+						os.Remove(path[i])
+					}
+					os.Remove(metapath[i])
+					cat.Delete(bucket, keys[i])
 					path[i] = ""
 					patherr[i] = err
 				} else {

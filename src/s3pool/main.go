@@ -22,6 +22,7 @@ import (
 	"os/exec"
 	"s3pool/conf"
 	"s3pool/lander"
+	"s3pool/local"
 	"s3pool/mon"
 	"s3pool/op"
 	"s3pool/pidfile"
@@ -66,7 +67,6 @@ func checkhdfs() bool {
 	err := cmd.Run()
 	return err == nil
 }
-
 
 func checkdirs() {
 	// create the log, tmp and data directories
@@ -160,6 +160,7 @@ func serve(c *tcp_server.Client, request string) {
 }
 
 type arrayFlags []string
+
 func (i *arrayFlags) String() string {
 	var ret string
 	for j, arg := range *i {
@@ -168,29 +169,29 @@ func (i *arrayFlags) String() string {
 		}
 		ret += arg
 	}
-    return ret
+	return ret
 }
 
 func (i *arrayFlags) Set(value string) error {
-    *i = append(*i, value)
-    return nil
+	*i = append(*i, value)
+	return nil
 }
 
 type progArgs struct {
-	port              *int
-	dir               *string
-	noDaemon          *bool
-	daemonPrep        *bool
-	pidFile           *string
-	pullConcurrency   *int
-	devices           arrayFlags
-	hdfs              *bool
-	hdfs2x            *bool
-	s3                *bool
-	local             *bool
-	rows_per_group    *int
+	port            *int
+	dir             *string
+	noDaemon        *bool
+	daemonPrep      *bool
+	pidFile         *string
+	pullConcurrency *int
+	devices         arrayFlags
+	hdfs            *bool
+	hdfs2x          *bool
+	s3              *bool
+	local           *bool
+	rows_per_group  *int
+	local_prefix    *string
 }
-
 
 func parseArgs() (p progArgs, err error) {
 	p.port = flag.Int("p", 0, "port number")
@@ -204,8 +205,9 @@ func parseArgs() (p progArgs, err error) {
 	p.hdfs = flag.Bool("hdfs", false, "run in hdfs mode")
 	p.hdfs2x = flag.Bool("hdfs2x", false, "run in hdfs 2.x mode")
 	p.local = flag.Bool("local", false, "run in local mode")
-	p.rows_per_group =  flag.Int("N", 0, "number of rows per group")
- 
+	p.local_prefix = flag.String("src_prefix", "/", "source prefix path for local")
+	p.rows_per_group = flag.Int("N", 0, "number of rows per group")
+
 	flag.Parse()
 
 	if len(flag.Args()) != 0 {
@@ -227,11 +229,10 @@ func parseArgs() (p progArgs, err error) {
 		return
 	}
 
-	if (! *p.s3 && ! *p.hdfs && ! *p.hdfs2x && ! *p.local )  {
+	if !*p.s3 && !*p.hdfs && !*p.hdfs2x && !*p.local {
 		err = errors.New("Missing or invalid dfs. Either -s3, -hdfs, -hdfs2x or -local.")
 		return
 	}
-
 
 	return
 }
@@ -342,18 +343,21 @@ func main() {
 	conf.BucketmonChannel = mon.Bucketmon()
 
 	// conf.DfsMode
-	if (*p.s3) {
+	if *p.s3 {
 		conf.DfsMode = conf.DFS_S3
 	}
-	if (*p.hdfs) {
+	if *p.hdfs {
 		conf.DfsMode = conf.DFS_HDFS
 	}
-	if (*p.hdfs2x) {
+	if *p.hdfs2x {
 		conf.DfsMode = conf.DFS_HDFS2X
 	}
-	if (*p.local) {
+	if *p.local {
 		conf.DfsMode = conf.DFS_LOCAL
 	}
+
+	// init local
+	local.Init(*p.local_prefix)
 
 	// init op
 	op.Init()

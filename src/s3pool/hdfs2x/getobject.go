@@ -27,7 +27,7 @@ import (
 // Invoke aws s3api to retrieve a file. Form:
 //
 //	aws s3api get-object --bucket BUCKET --key KEY --if-none-match ETAG tmppath
-func GetObject(bucket string, key string, force bool) (retpath string, hit bool, err error) {
+func GetObject(bucket string, key string, force bool) (retpath string, metapath string, hit bool, err error) {
 	if conf.Verbose(1) {
 		log.Println("hadoop fs -get", bucket, key)
 	}
@@ -40,7 +40,7 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 	}
 
 	// Get etag from meta file
-	metapath := path + "__meta__"
+	metapath = path + "__meta__"
 	etag := extractETag(metapath)
 	catetag := cat.Find(bucket, key)
 

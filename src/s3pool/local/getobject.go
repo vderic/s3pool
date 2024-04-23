@@ -17,31 +17,37 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"s3pool/cat"
 	"s3pool/conf"
 )
 
+var g_src_prefix string
+
+func Init(src_prefix string) {
+	g_src_prefix = src_prefix
+}
+
 // Invoke aws s3api to retrieve a file. Form:
 //
 //	aws s3api get-object --bucket BUCKET --key KEY --if-none-match ETAG tmppath
-func GetObject(bucket string, key string, force bool) (retpath string, hit bool, err error) {
+func GetObject(bucket string, key string, force bool) (retpath string, metapath string, hit bool, err error) {
 	if conf.Verbose(1) {
 		log.Println("local GetObject", bucket, key)
 	}
 
-	// Get destination path
 	path, err := mapToPath(bucket, key)
 	if err != nil {
 		err = fmt.Errorf("Cannot map bucket+key to path -- %v", err)
 		return
 	}
-
 	// Get etag from meta file
-	metapath := path + "__meta__"
+	metapath = path + "__meta__"
 	etag := extractETag(metapath)
 	catetag := cat.Find(bucket, key)
 
-	dfspath := "/" + bucket + "/" + key
+	// Get destination path
+	dfspath := filepath.Join(g_src_prefix, bucket, key)
 
 	// If etag did not change, don't go fetch it
 	if etag != "" && etag == catetag && !force {
@@ -61,13 +67,13 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 	}
 
 	// Prepare to write to tmp file
-        tmppath, err := mktmpfile()
-        if err != nil {
-                err = fmt.Errorf("Cannot create temp file -- %v", err)
-                return
-        }
-        os.Remove(tmppath) // avoid File Exists error from hdfs
-        defer os.Remove(tmppath)
+	tmppath, err := mktmpfile()
+	if err != nil {
+		err = fmt.Errorf("Cannot create temp file -- %v", err)
+		return
+	}
+	os.Remove(tmppath) // avoid File Exists error from hdfs
+	defer os.Remove(tmppath)
 
 	// Remote checksum always equals to zero
 	newetag := "0"
@@ -91,9 +97,8 @@ func GetObject(bucket string, key string, force bool) (retpath string, hit bool,
 	// Save the meta info
 	ioutil.WriteFile(tmppath, []byte(etag_content), 0644)
 	if err = moveFile(tmppath, metapath); err != nil {
-                return
-        }
-
+		return
+	}
 
 	// Update catalog with the new etag
 	etag = extractETag(metapath)
