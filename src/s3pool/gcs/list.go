@@ -44,7 +44,7 @@ func ListObjects(bucket string, prefix string, notify func(key, etag string)) er
 		}
 
 		key := attrs.Name
-		etag := ""
+		etag := "0"
 		notify(key, etag)
 	}
 
