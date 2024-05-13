@@ -15,6 +15,7 @@ package gcs
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"s3pool/cat"
@@ -100,17 +101,17 @@ func GetObject(bucket string, key string, force bool) (retpath string, metapath 
 		return
 	}
 
-	/*
-		// Save the meta info
-		ioutil.WriteFile(metapath, outbuf.Bytes(), 0644)
+	gspath := "gs://" + bucket + "/" + key
+	etag_content := "0" + " " + gspath
+	// Save the meta info
+	ioutil.WriteFile(metapath, []byte(etag_content), 0644)
 
-		// Update catalog with the new etag
-		etag = extractETag(metapath)
-		if etag != "" {
-			//log.Println(" ... update", key, etag)
-			cat.Upsert(bucket, key, etag)
-		}
-	*/
+	// Update catalog with the new etag
+	etag = extractETag(metapath)
+	if etag != "" {
+		//log.Println(" ... update", key, etag)
+		cat.Upsert(bucket, key, etag)
+	}
 
 	// Done!
 	retpath = path

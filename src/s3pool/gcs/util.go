@@ -15,7 +15,6 @@ package gcs
 import (
 	"cloud.google.com/go/storage"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -74,20 +73,13 @@ func extractETag(path string) string {
 		return ""
 	}
 
-	var dat map[string]interface{}
-	err = json.Unmarshal(byt, &dat)
-	if err != nil {
+	dat := string(byt)
+	nv := strings.SplitN(dat, " ", 2)
+	if len(nv) != 2 {
 		return ""
 	}
 
-	ret, ok := dat["ETag"]
-	if !ok {
-		return ""
-	}
-
-	etag := ret.(string)
-	etag = strings.Trim(etag, "\"")
-
+	etag := nv[0]
 	return etag
 }
 

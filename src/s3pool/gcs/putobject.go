@@ -14,14 +14,14 @@ package gcs
 
 import (
 /*
-	"bytes"
-	"fmt"
-	"log"
-	"os"
-	"os/exec"
-	"s3pool/cat"
-	"s3pool/conf"
-	"s3pool/strlock"
+"bytes"
+"fmt"
+"log"
+"os"
+"os/exec"
+"s3pool/cat"
+"s3pool/conf"
+"s3pool/strlock"
 */
 )
 
