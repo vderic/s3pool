@@ -51,7 +51,7 @@ func Glob(args []string) (string, error) {
 		return g.Match(key)
 	}
 	var prefix string
-	if conf.DfsMode != conf.DFS_S3 {
+	if conf.DfsMode != conf.DFS_S3 && conf.DfsMode != conf.DFS_GCS {
 		prefix = pattern
 	} else {
 		prefix = globPrefix(pattern)

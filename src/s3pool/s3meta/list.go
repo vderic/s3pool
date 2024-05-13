@@ -78,6 +78,20 @@ func (p *serverCB) list(req *requestType) (reply *replyType) {
                         reply = &replyType{err: err}
                         return
                 }
+        }  else if conf.DfsMode == conf.DFS_GCS {
+                err := gcsListObjects(bucket, prefix, func(k, t string) {
+                        if k[len(k)-1] == '/' {
+                                // skip DIR
+                                return
+                        }
+                        reply.key = append(reply.key, k)
+                        reply.etag = append(reply.etag, t)
+                })
+
+                if err != nil {
+                        reply = &replyType{err: err}
+                        return
+                }
         }
 
 

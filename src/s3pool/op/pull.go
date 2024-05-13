@@ -24,6 +24,7 @@ import (
 	"s3pool/lander"
 	"s3pool/local"
 	"s3pool/s3"
+	"s3pool/gcs"
 	"s3pool/strlock"
 	"strings"
 	"sync"
@@ -76,6 +77,8 @@ func Pull(args []string) (string, error) {
 			path[i], metapath[i], hit, patherr[i] = s3.GetObject(bucket, keys[i], false)
 		} else if conf.DfsMode == conf.DFS_LOCAL {
 			path[i], metapath[i], hit, patherr[i] = local.GetObject(bucket, keys[i], false)
+		} else if conf.DfsMode == conf.DFS_GCS {
+			path[i], metapath[i], hit, patherr[i] = gcs.GetObject(bucket, keys[i], false)
 		}
 
 		if hit {

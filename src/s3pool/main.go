@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"s3pool/conf"
+	"s3pool/gcs"
 	"s3pool/lander"
 	"s3pool/local"
 	"s3pool/mon"
@@ -188,6 +189,7 @@ type progArgs struct {
 	hdfs            *bool
 	hdfs2x          *bool
 	s3              *bool
+	gcs             *bool
 	local           *bool
 	rows_per_group  *int
 	local_prefix    *string
@@ -202,6 +204,7 @@ func parseArgs() (p progArgs, err error) {
 	p.pullConcurrency = flag.Int("c", 20, "maximum concurrent pull from s3")
 	flag.Var(&p.devices, "d", "device directory")
 	p.s3 = flag.Bool("s3", false, "run in s3 mode")
+	p.gcs = flag.Bool("gcs", false, "run in gcs mode")
 	p.hdfs = flag.Bool("hdfs", false, "run in hdfs mode")
 	p.hdfs2x = flag.Bool("hdfs2x", false, "run in hdfs 2.x mode")
 	p.local = flag.Bool("local", false, "run in local mode")
@@ -354,6 +357,13 @@ func main() {
 	}
 	if *p.local {
 		conf.DfsMode = conf.DFS_LOCAL
+	}
+	if *p.gcs {
+		conf.DfsMode = conf.DFS_GCS
+		err = gcs.Init()
+		if err != nil {
+			exit(err.Error())
+		}
 	}
 
 	// init local
