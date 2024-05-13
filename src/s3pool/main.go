@@ -232,8 +232,8 @@ func parseArgs() (p progArgs, err error) {
 		return
 	}
 
-	if !*p.s3 && !*p.hdfs && !*p.hdfs2x && !*p.local {
-		err = errors.New("Missing or invalid dfs. Either -s3, -hdfs, -hdfs2x or -local.")
+	if !*p.s3 && !*p.hdfs && !*p.hdfs2x && !*p.local && !*p.gcs {
+		err = errors.New("Missing or invalid dfs. Either -s3, -hdfs, -hdfs2x, -gcs or -local.")
 		return
 	}
 

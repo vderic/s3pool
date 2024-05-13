@@ -56,7 +56,7 @@ func gcsListObjects(bucket string, prefix string, notify func(key, etag string))
 		}
 
 		key := attrs.Name
-		etag := ""
+		etag := "0"
 		notify(key, etag)
 	}
 
